@@ -19,12 +19,15 @@ class Pipeline:
     ''' Requires a dataframe containing only numerical columns except for two, representing ID and species.
         'ID' and 'species' must be labeled in the dataframe, or changed in the code
     '''
-    def __init__(self, plot_size = (4,4), species = 'species', ID = 'ID'):
+    def __init__(self, plot_size, species , ID):
         self.plot_size = plot_size
-        self.species = species
-        self.ID = ID
+        self.species = species # Name of species column
+        self.ID = ID # Name of ID column
         self.filename = None
         
+        self.species1 = None # Name of Species 1
+        self.species2 = None # Name of Species 2
+
     def GetData(self):
         ''' Load the data and perform z-score scaling on it
             Requires that the last two columns are species and ID
@@ -34,18 +37,22 @@ class Pipeline:
         ID_names = data[self.ID]  # Needs to be in last two columns
         y_names = y.unique()
         y_names.sort()
+        
+        self.species1 = y_names[0]
+        self.species2 = y_names[1]
+
         X = data.drop(columns=[self.species, self.ID], axis = 1)
         
         # Reason why ID and species need to be last two columns 
         X = pd.DataFrame(SS().fit_transform(data.iloc[:, 0:-2]), columns = data.columns[0:-2]) 
-        X['ID'] = ID_names
+        X[self.ID] = ID_names
         return X, y, y_names
     
     def DoKFold(self, weight = 'balanced', k = 10):
         X, y, y_names = self.GetData()
 
         # Split the data into features and target
-        features = X.drop(['ID'], axis = 1)
+        features = X.drop([self.ID], axis = 1)
 
         # Create a KFold object with 10 splits
         kf = KFold(n_splits = 10)
@@ -84,7 +91,7 @@ class Pipeline:
         X, y, y_names = self.GetData()
 
         # Split the dataset into features and target
-        X2 = X.drop(['ID'], axis=1)
+        X2 = X.drop([self.ID], axis=1)
 
         # Perform KMeans clustering with k=2
         model = KM(n_clusters = 2, random_state = 42)
@@ -95,14 +102,14 @@ class Pipeline:
 
         # Add the predicted labels to the original dataset
         X2['cluster'] = y_pred
-        X2['species'] = y
+        X2[self.species] = y
         # Relabel the cluster column with the associated species names
-        if y[0] == 'exaltata':
-            X2['cluster'] = X2['cluster'].map({0: 'syriaca', 1: 'exaltata'})
-        elif y[0] == 'syriaca':
-            X2['cluster'] = X2['cluster'].map({1: 'syriaca', 0: 'exaltata'})
+        if y[0] == self.species1:
+            X2['cluster'] = X2['cluster'].map({0: self.species2, 1: self.species1})
+        elif y[0] == self.species2:
+            X2['cluster'] = X2['cluster'].map({1: self.species2, 0: self.species1})
 
-        incorrect_clust = X2[X2['species'] != X2['cluster']]
+        incorrect_clust = X2[X2[self.species] != X2['cluster']]
         incorrect_clust = incorrect_clust.index.tolist()
         return incorrect_clust
     
@@ -121,7 +128,7 @@ class Pipeline:
     def RunPCA(self):
         X, y, y_names, incorrect_samples_classification, incorrect_samples_clustering, intersect = self.RunPipeline()
         pca = PCA()
-        Xpca = pca.fit_transform(X.drop(columns='ID'))
+        Xpca = pca.fit_transform(X.drop(columns = self.ID))
 
         # Plot the data with the true labels, circle the ones that were always classified/clustered wrong
         fig, ax = plt.subplots(figsize = self.plot_size)
@@ -143,13 +150,32 @@ class Pipeline:
         ax.set_title('Circled Samples Classified Incorrectly')
         return fig, ax
    
+
     def choose_file(self):
+        # Create a new tkinter window
         self.root = tk.Tk()
 
+        button = tk.Button(self.root, text="Select CSV file", command = self.browse_file)
+        button.pack()
+
+        tk.mainloop()
+
+    def browse_file(self):
+        # Prompt the user to select a file
         self.filename = filedialog.askopenfilename(title="Select CSV file", filetypes=[("CSV Files", "*.csv")])
         if self.filename:
+            # Destroy the first window
             self.root.destroy()
             self.Tk() 
+
+
+    # def choose_file(self):
+    #     self.root = tk.Tk()
+
+    #     self.filename = filedialog.askopenfilename(title="Select CSV file", filetypes=[("CSV Files", "*.csv")])
+    #     if self.filename:
+    #         self.root.destroy()
+    #         self.Tk() 
             
     def Tk(self):
         ''' Tk is the culmination of this project. It calls RunPipeline() and RunPCA(), placing plot and incorrect labels
@@ -170,7 +196,7 @@ class Pipeline:
         
         # Scrolled Textbox for overflow
         label = tk.scrolledtext.ScrolledText(root, height = 1, borderwidth = 0)
-        Incorrect_IDs = 'Incorrect ID Labels: ' + str([i for i in X.iloc[intersect]['ID']])[1:-1]
+        Incorrect_IDs = 'Incorrect ID Labels: ' + str([i for i in X.iloc[intersect][self.ID]])[1:-1]
         label.insert(1.0, Incorrect_IDs)
         label.pack()
         
@@ -178,10 +204,4 @@ class Pipeline:
         label.configure(state = "disabled")
         label.configure(inactiveselectbackground=label.cget("selectbackground"))
         
-        #self.root.destroy()
-
         tk.mainloop()
-
-if __name__ == '__main__':
-    mydata = Pipeline()
-    mydata.choose_file()
