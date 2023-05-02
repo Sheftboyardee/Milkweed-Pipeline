@@ -10,4 +10,6 @@ This repository contains:
 
 ---
 Requirements:
-1) Takes a .csv as input, requres the last two columns to be ID and species. Requires all other columns to be numeric.
+1) Takes a .csv as input
+2) Requres the last two columns to be ID and species
+3) Requires all other columns to be numeric.
