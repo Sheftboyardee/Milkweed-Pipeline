@@ -152,36 +152,25 @@ class Pipeline:
    
 
     def choose_file(self):
-        # Create a new tkinter window
+        '''Creates new Tk window with button instance. Interacting with button calls browse_file()'''
         self.root = tk.Tk()
-
+        # Create button instance 
         button = tk.Button(self.root, text="Select CSV file", command = self.browse_file)
         button.pack()
 
         tk.mainloop()
 
     def browse_file(self):
+        '''Prompted by choose_file(). Opens file explorer, prompting a valid .csv file. If successful, then Tk() '''
         # Prompt the user to select a file
         self.filename = filedialog.askopenfilename(title="Select CSV file", filetypes=[("CSV Files", "*.csv")])
         if self.filename:
-            # Destroy the first window
+            # Destroy the first window and call main tk
             self.root.destroy()
             self.Tk() 
 
-
-    # def choose_file(self):
-    #     self.root = tk.Tk()
-
-    #     self.filename = filedialog.askopenfilename(title="Select CSV file", filetypes=[("CSV Files", "*.csv")])
-    #     if self.filename:
-    #         self.root.destroy()
-    #         self.Tk() 
-            
     def Tk(self):
-        ''' Tk is the culmination of this project. It calls RunPipeline() and RunPCA(), placing plot and incorrect labels
-            inside of Tk object for easy visualization.
-        '''
-        
+        '''Prompted by browse_file(). Calls RunPipeline() and RunPCA()'''
         if not self.filename:
             return
         
@@ -200,7 +189,7 @@ class Pipeline:
         label.insert(1.0, Incorrect_IDs)
         label.pack()
         
-        # Make the text interactive, i.e., copy label IDs
+        # Make the text interactive
         label.configure(state = "disabled")
         label.configure(inactiveselectbackground=label.cget("selectbackground"))
         
