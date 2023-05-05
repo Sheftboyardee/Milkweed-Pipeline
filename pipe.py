@@ -154,16 +154,22 @@ class Pipeline:
     def choose_file(self):
         '''Creates new Tk window with button instance. Interacting with button calls browse_file()'''
         self.root = tk.Tk()
+        self.root.geometry("300x200")
+        
+        label = tk.Label(self.root, text="Please select a CSV file:")
+        label.pack(pady=10)
         # Create button instance 
-        button = tk.Button(self.root, text="Select CSV file", command = self.browse_file)
-        button.pack()
+        font = ("Arial", 16)
+        button = tk.Button(self.root, text="Select CSV file", command = self.browse_file, width=20, height=3, font = font,bg = "AntiqueWhite2")
+        button.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
         tk.mainloop()
 
     def browse_file(self):
         '''Prompted by choose_file(). Opens file explorer, prompting a valid .csv file. If successful, then Tk() '''
         # Prompt the user to select a file
-        self.filename = filedialog.askopenfilename(title="Select CSV file", filetypes=[("CSV Files", "*.csv")])
+        
+        self.filename = filedialog.askopenfilename(title="Select CSV File", filetypes=[("CSV Files", "*.csv")])
         if self.filename:
             # Destroy the first window and call main tk
             self.root.destroy()
