@@ -17,7 +17,7 @@ import numpy as np
 
 class Pipeline:
     ''' Requires a dataframe containing only numerical columns except for two, representing ID and species.
-        'ID' and 'species' must be labeled in the dataframe, or changed in the code
+        'ID' and 'species' must be labeled in the dataframe, or referenced in main
     '''
     def __init__(self, plot_size, species , ID):
         self.plot_size = plot_size
